@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Qota — Claude Code Token Tracker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:    #007AFF;
+      --green:   #34C759;
+      --yellow:  #FF9500;
+      --red:     #FF3B30;
+      --gray-1:  #F2F2F7;
+      --gray-2:  #E5E5EA;
+      --gray-3:  #8E8E93;
+      --text:    #1C1C1E;
+      --subtext: #3C3C43CC;
+      --card:    #FFFFFF;
+      --bg:      #F2F2F7;
+      --radius:  18px;
+    }
+
+    body {
+      font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--card);
+      text-align: center;
+      padding: 96px 24px 80px;
+    }
+
+    .hero-icon {
+      font-size: 72px;
+      line-height: 1;
+      margin-bottom: 24px;
+      display: block;
+    }
+
+    .hero h1 {
+      font-size: 52px;
+      font-weight: 700;
+      letter-spacing: -1.5px;
+      line-height: 1.05;
+      margin-bottom: 16px;
+    }
+
+    .hero p {
+      font-size: 19px;
+      color: var(--subtext);
+      max-width: 480px;
+      margin: 0 auto 40px;
+      line-height: 1.5;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #F2F2F7;
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gray-3);
+    }
+
+    .badge span { color: var(--green); }
+
+    /* ── PREVIEW ── */
+    .preview {
+      background: var(--card);
+      padding: 0 24px 80px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .menubar-mock {
+      background: #1C1C1E;
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      width: 100%;
+      max-width: 340px;
+      font-family: "SF Mono", "Menlo", monospace;
+      font-size: 13px;
+      color: #FFFFFF;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    }
+
+    .menubar-mock .bar-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #3A3A3C;
+    }
+
+    .menubar-mock .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      color: #EBEBF5CC;
+      font-size: 12px;
+    }
+
+    .menubar-mock .row.primary {
+      color: #FFFFFF;
+      font-size: 13px;
+      padding: 8px 0;
+      border-bottom: 1px solid #3A3A3C;
+      margin-bottom: 4px;
+    }
+
+    .menubar-mock .row.muted { color: #8E8E93; font-size: 11px; }
+    .menubar-mock .divider { border-top: 1px solid #3A3A3C; margin: 10px 0; }
+    .menubar-mock .action { color: var(--blue); font-size: 12px; padding: 4px 0; }
+
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; }
+
+    /* ── SECTIONS ── */
+    .section {
+      padding: 80px 24px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 10px;
+    }
+
+    .section h2 {
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: -0.8px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .section > p {
+      font-size: 17px;
+      color: var(--subtext);
+      line-height: 1.6;
+      margin-bottom: 40px;
+    }
+
+    /* ── CARDS GRID ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .card-icon {
+      font-size: 32px;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .card h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .card p {
+      font-size: 15px;
+      color: var(--subtext);
+      line-height: 1.5;
+    }
+
+    /* ── PRIVACY BLOCK ── */
+    .privacy-list {
+      background: var(--card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .privacy-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--gray-2);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .privacy-item:last-child { border-bottom: none; }
+    .privacy-item .check { color: var(--green); font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── INSTALL ── */
+    .install-block {
+      background: var(--card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .install-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--gray-2);
+    }
+
+    .install-step:last-child { border-bottom: none; }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background: var(--blue);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .install-step h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .install-step p {
+      font-size: 14px;
+      color: var(--subtext);
+      line-height: 1.4;
+    }
+
+    code {
+      font-family: "SF Mono", "Menlo", monospace;
+      font-size: 13px;
+      background: var(--gray-1);
+      border-radius: 6px;
+      padding: 2px 7px;
+      color: var(--blue);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--card);
+      text-align: center;
+      padding: 40px 24px;
+      font-size: 14px;
+      color: var(--gray-3);
+      border-top: 1px solid var(--gray-2);
+    }
+
+    footer a { color: var(--blue); text-decoration: none; }
+
+    /* ── SEPARATOR ── */
+    .page-sep {
+      height: 1px;
+      background: var(--gray-2);
+      max-width: 720px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h1>Qota</h1>
+    <p>Know exactly how many Claude Code tokens you have left — without sharing a single message.</p>
+    <span class="badge"><span>●</span> macOS · SwiftBar · 100% local</span>
+  </section>
+
+  <!-- MENUBAR PREVIEW -->
+  <section class="preview">
+    <div class="menubar-mock">
+      <div class="bar-line">
+        <span>🟢</span>
+        <span>23% [██░░░░░░░░]</span>
+      </div>
+      <div class="row primary">
+        <span>🤖 Active model</span>
+        <span>Sonnet</span>
+      </div>
+      <div class="row primary">
+        <span>📊 Detected plan</span>
+        <span>Max 5x</span>
+      </div>
+      <div class="row" style="padding-top:12px">
+        <span>Tokens used</span>
+        <span>20,240 / 88,000</span>
+      </div>
+      <div class="row muted"><span>├─ Input</span><span>15,100</span></div>
+      <div class="row muted"><span>├─ Output</span><span>4,800</span></div>
+      <div class="row muted"><span>├─ Cache read</span><span>340</span></div>
+      <div class="row muted"><span>└─ Cache write</span><span>0</span></div>
+      <div class="divider"></div>
+      <div class="row action">🔄 Refresh now</div>
+      <div class="row action">📁 View logs</div>
+    </div>
+  </section>
+
+  <div class="page-sep"></div>
+
+  <!-- FEATURES -->
+  <section class="section">
+    <p class="section-label">Features</p>
+    <h2>Everything you need.<br>Nothing you don't.</h2>
+    <p>A single Bash script. No server. No account. No background daemon.</p>
+    <div class="cards">
+      <div class="card">
+        <span class="card-icon">📊</span>
+        <h3>Live token counter</h3>
+        <p>Tracks input, output, cache read and cache write tokens in real time, per session.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🔔</span>
+        <h3>Smart notifications</h3>
+        <p>Native macOS alerts at every 10% of usage. Quiet info early, critical warnings near the limit.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🧠</span>
+        <h3>Auto plan detection</h3>
+        <p>Detects your Claude plan automatically by comparing your historical peak usage.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">⚡</span>
+        <h3>Zero overhead</h3>
+        <p>~100 lines of Bash. Runs every 5 minutes. Uses no CPU between refreshes.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="page-sep"></div>
+
+  <!-- PRIVACY -->
+  <section class="section">
+    <p class="section-label">Privacy</p>
+    <h2>Your conversations<br>stay yours.</h2>
+    <p>Qota only reads the numeric fields from Claude Code's local JSONL files. It never touches message content.</p>
+    <div class="privacy-list">
+      <div class="privacy-item">
+        <span class="check">✓</span>
+        <span>Reads only <code>input_tokens</code>, <code>output_tokens</code>, <code>cache_read_input_tokens</code>, <code>cache_creation_input_tokens</code> and the model name.</span>
+      </div>
+      <div class="privacy-item">
+        <span class="check">✓</span>
+        <span>Everything runs locally on your Mac. No internet connection required.</span>
+      </div>
+      <div class="privacy-item">
+        <span class="check">✓</span>
+        <span>No telemetry, no analytics, no external tracking of any kind.</span>
+      </div>
+      <div class="privacy-item">
+        <span class="check">✓</span>
+        <span>The full source is ~100 lines of pure Bash — auditable in minutes.</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="page-sep"></div>
+
+  <!-- INSTALL -->
+  <section class="section">
+    <p class="section-label">Installation</p>
+    <h2>Up and running<br>in 3 steps.</h2>
+    <p>Requires macOS 12+ and <a href="https://swiftbar.app" style="color:var(--blue);text-decoration:none">SwiftBar</a>.</p>
+    <div class="install-block">
+      <div class="install-step">
+        <div class="step-num">1</div>
+        <div>
+          <h4>Install SwiftBar</h4>
+          <p><code>brew install --cask swiftbar</code></p>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="step-num">2</div>
+        <div>
+          <h4>Clone this repo</h4>
+          <p><code>git clone https://github.com/your-user/qota</code></p>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="step-num">3</div>
+        <div>
+          <h4>Run the installer</h4>
+          <p><code>chmod +x install.sh && ./install.sh</code></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>Qota — open source, MIT license.</p>
+  </footer>
+
+</body>
+</html>
