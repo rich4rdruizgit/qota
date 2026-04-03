@@ -1,5 +1,7 @@
 # Qota 🤖
 
+**[🌐 GitHub Page](https://rich4rdruizgit.github.io/qota/)**
+
 macOS menu bar widget that monitors your Claude Code token usage **without accessing your conversation content**.
 
 ## What does it do exactly?
